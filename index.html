@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>神秘塔罗亭 | Mystic Tarot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #030613; 
+            --gold: #d4af37;
+            --parchment: #e2d6b5;
+            --text-light: #e6e0d4;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at center, #0f1c3f 0%, var(--bg-dark) 80%);
+            color: var(--text-light);
+            font-family: 'Georgia', '楷体', serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 魔法书图标 (右上角) */
+        #magic-book-icon {
+            position: absolute;
+            top: 40px;
+            right: 50px;
+            width: 45px;
+            height: 45px;
+            color: var(--gold);
+            cursor: pointer;
+            z-index: 500;
+            transition: all 0.3s ease;
+            opacity: 0.7;
+        }
+
+        #magic-book-icon:hover {
+            transform: scale(1.1);
+            opacity: 1;
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
+        }
+
+        /* 初始输入区 */
+        #input-section {
+            background-color: var(--parchment);
+            background-image: radial-gradient(circle, #e2d6b5 0%, #c4b58d 100%);
+            padding: 40px;
+            border-radius: 5px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.9);
+            text-align: center;
+            z-index: 10;
+            transition: opacity 1s, transform 1s;
+            width: 400px;
+            position: absolute;
+        }
+
+        #input-section h2, #summary-section h2, .magic-book-inner h2 {
+            font-family: 'Great Vibes', cursive;
+            color: #4a3625;
+            font-size: 42px;
+            margin-top: 0;
+            border-bottom: 2px solid #8a7325;
+            padding-bottom: 10px;
+        }
+
+        textarea {
+            width: 90%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px dashed #8a7325;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+            font-size: 18px;
+            color: #4a3625;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        button {
+            background: #4a3625;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        button:hover {
+            box-shadow: 0 0 20px var(--gold);
+            background: var(--gold);
+            color: #4a3625;
+        }
+
+        /* 占卜桌面 */
+        #tarot-table {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        #deck-container {
+            position: absolute;
+            top: calc(50% - 180px);
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 150px;
+        }
+
+        .card {
+            position: absolute;
+            width: 80px;
+            height: 140px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.5s, box-shadow 0.5s;
+            transform-origin: center center;
+            transform-style: preserve-3d;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .card-front {
+            background-image: url('image_708dea.jpg');
+            background-size: cover;
+            background-position: center;
+            border: 1px solid #8a7325;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+
+        .card-back {
+            background-image: url('v2-bd6fa28dd5e7cd23a5d3dd2f7f7edf1f_r.jpg');
+            background-size: 700% 400%; 
+            transform: rotateY(180deg);
+            border: 1px solid #8a7325;
+        }
+
+        #spread-slots {
+            position: absolute;
+            top: calc(50% - 180px);
+            left: 50%;
+            transform: translate(-50%, calc(-50% + 420px));
+            display: flex;
+            gap: 122px; 
+            transition: opacity 0.5s;
+        }
+
+        .slot {
+            width: 128px;
+            height: 224px;
+            border: 2px dashed rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            color: rgba(212, 175, 55, 0.5);
+            padding-bottom: -30px;
+        }
+
+        #reading-panel {
+            position: absolute;
+            right: -500px;
+            top: 10%;
+            width: 380px;
+            height: 80%;
+            background-color: var(--parchment);
+            background-image: radial-gradient(circle, #e2d6b5 0%, #c4b58d 100%);
+            box-shadow: -10px 0 40px rgba(0,0,0,0.9);
+            padding: 40px;
+            box-sizing: border-box;
+            transition: right 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+            color: #4a3625;
+            display: flex;
+            flex-direction: column;
+            z-index: 200;
+        }
+
+        #reading-panel h3 {
+            font-family: 'Great Vibes', cursive;
+            font-size: 36px;
+            margin-top: 0;
+            border-bottom: 1px solid #8a7325;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .card-name { font-size: 26px; font-weight: bold; margin-bottom: 8px; text-align: center; }
+        .card-state { font-size: 16px; color: #8a7325; margin-bottom: 25px; text-align: center; font-weight: bold; }
+        .card-meaning { flex-grow: 1; font-size: 18px; line-height: 1.8; overflow-y: auto; text-align: justify; padding-right: 10px; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(138, 115, 37, 0.5); border-radius: 3px; }
+
+        .next-btn { margin-top: 30px; align-self: center; width: 100%; }
+
+        #summary-section {
+            position: absolute;
+            bottom: -120%; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 40vh; 
+            background-color: var(--parchment);
+            background-image: radial-gradient(circle, #e2d6b5 0%, #c4b58d 100%);
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.9);
+            padding: 15px 40px 40px 40px;
+            box-sizing: border-box;
+            color: #4a3625;
+            transition: bottom 0.8s cubic-bezier(0.25, 0.8, 0.25, 1), height 0.4s ease;
+            z-index: 400; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+
+        #drag-handle-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-bottom: 15px;
+            cursor: ns-resize;
+            user-select: none;
+        }
+
+        #drag-handle {
+            width: 120px;
+            height: 6px;
+            background-color: #8a7325;
+            border-radius: 3px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        #drag-handle::after {
+            content: '⇡ 拖拽或双击全屏展开 ⇡';
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #8a7325;
+            white-space: nowrap;
+            opacity: 0.7;
+        }
+
+        #drag-handle-container:hover #drag-handle { background-color: #4a3625; transform: scaleY(1.5); }
+        
+        .summary-text { font-size: 18px; line-height: 1.8; text-align: center; margin-bottom: 20px; overflow-y: auto; flex-grow: 1; width: 100%; padding: 0 20px; }
+        .summary-actions { display: flex; gap: 20px; flex-shrink: 0; }
+
+        /* 魔法书历史记录面板 (全屏弹窗) */
+        #magic-book-modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 6, 19, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .magic-book-inner {
+            width: 800px;
+            height: 80vh;
+            background-color: var(--parchment);
+            background-image: radial-gradient(circle, #e2d6b5 0%, #c4b58d 100%);
+            border-radius: 10px;
+            box-shadow: 0 0 60px rgba(212, 175, 55, 0.4);
+            padding: 40px;
+            box-sizing: border-box;
+            position: relative;
+            color: #4a3625;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            cursor: pointer;
+            color: #4a3625;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover { color: #8a7325; }
+
+        #magic-book-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 15px;
+            margin-top: 20px;
+        }
+
+        /* 单条历史记录卡片样式 */
+        .history-item {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px dashed #8a7325;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .history-item:hover { background: rgba(255, 255, 255, 0.4); }
+        .history-date { font-size: 14px; color: #8a7325; margin-bottom: 10px; font-style: italic; }
+        .history-question { font-weight: bold; font-size: 20px; margin-bottom: 15px; border-bottom: 1px solid rgba(138, 115, 37, 0.3); padding-bottom: 10px;}
+        .history-cards { display: flex; gap: 15px; flex-wrap: wrap; }
+        .history-card-tag {
+            background: #4a3625;
+            color: var(--gold);
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="magic-book-icon" onclick="openMagicBook()" title="打开魔法书 (历史记录)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            <path d="M12 7v7"></path>
+            <path d="M9 10h6"></path>
+        </svg>
+    </div>
+
+    <div id="magic-book-modal">
+        <div class="magic-book-inner">
+            <div class="close-btn" onclick="closeMagicBook()">×</div>
+            <h2>Book of Shadows</h2>
+            <div id="magic-book-list">
+                </div>
+        </div>
+    </div>
+
+    <div id="input-section">
+        <h2>Mystic Tarot</h2>
+        <p style="color:#8a7325; font-size: 14px; margin-bottom: 20px;">命运的答案已在风中，请写下你的困惑...</p>
+        <textarea rows="3" id="question-input"></textarea>
+        <button onclick="startRitual()">交予命运 (开始洗牌)</button>
+    </div>
+
+    <div id="tarot-table">
+        <div id="deck-container"></div>
+        <div id="spread-slots">
+            <div class="slot">Past</div>
+            <div class="slot">Present</div>
+            <div class="slot">Future</div>
+        </div>
+    </div>
+
+    <div id="reading-panel">
+        <h3 id="position-title">Past</h3>
+        <div class="card-name" id="card-name-text">The Fool</div>
+        <div class="card-state" id="card-state-text">Upright</div>
+        <div class="card-meaning" id="card-meaning-text"></div>
+        <button class="next-btn" onclick="nextReading()" id="next-btn-text">解读下一张</button>
+    </div>
+
+    <div id="summary-section">
+        <div id="drag-handle-container">
+            <div id="drag-handle"></div>
+        </div>
+        <h2>The Revelation</h2>
+        <div class="summary-text" id="final-summary-content">
+            命运的脉络已经清晰可见。这三张牌的组合暗示着你正在经历一场深刻的蜕变...
+            <br><br><span style="color:#8a7325; font-size:16px;">(你可以按住顶部的指示条向上拖拽，或者直接双击它，将这张卷轴拉伸到全屏大小。)</span>
+        </div>
+        <div class="summary-actions">
+            <button onclick="saveToMagicBook()" id="save-btn">将此次启示封印于魔法书</button>
+            <button style="background: transparent; color: #4a3625; border-color: #4a3625;" onclick="location.reload()">随风散去 (重新占卜)</button>
+        </div>
+    </div>
+
+    <script>
+        const tarotData = [
+            { id: 0, name: "愚者 (The Fool)" }, { id: 1, name: "魔术师 (The Magician)" }, { id: 2, name: "女祭司 (The High Priestess)" },
+            { id: 3, name: "女皇 (The Empress)" }, { id: 4, name: "皇帝 (The Emperor)" }, { id: 5, name: "教皇 (The Hierophant)" },
+            { id: 6, name: "恋人 (The Lovers)" }, { id: 7, name: "战车 (The Chariot)" }, { id: 8, name: "力量 (Strength)" },
+            { id: 9, name: "隐士 (The Hermit)" }, { id: 10, name: "命运之轮 (Wheel of Fortune)" }, { id: 11, name: "正义 (Justice)" },
+            { id: 12, name: "倒吊人 (The Hanged Man)" }, { id: 13, name: "死神 (Death)" }, { id: 14, name: "节制 (Temperance)" },
+            { id: 15, name: "恶魔 (The Devil)" }, { id: 16, name: "高塔 (The Tower)" }, { id: 17, name: "星星 (The Star)" },
+            { id: 18, name: "月亮 (The Moon)" }, { id: 19, name: "太阳 (The Sun)" }, { id: 20, name: "审判 (Judgement)" },
+            { id: 21, name: "世界 (The World)" }
+        ];
+
+        const totalCards = 22; 
+        let drawnCardsInfo = []; 
+        let deckIndices = Array.from({length: totalCards}, (_, i) => i).sort(() => Math.random() - 0.5);
+
+        // 防止重复保存的锁
+        let hasSavedCurrentReading = false;
+        // 保存用户提问
+        let userQuestion = "";
+
+        function getBackgroundPosition(index) {
+            let col, row;
+            if (index === 0) { col = 3; row = 0; } 
+            else if (index >= 1 && index <= 7) { col = index - 1; row = 1; } 
+            else if (index >= 8 && index <= 14) { col = index - 8; row = 2; } 
+            else { col = index - 15; row = 3; }
+            return `${(col / 6) * 100}% ${(row / 3) * 100}%`;
+        }
+
+        function startRitual() {
+            const inputVal = document.getElementById('question-input').value.trim();
+            userQuestion = inputVal !== "" ? inputVal : "未言明的心事 (无需解答的具体问题)";
+
+            document.getElementById('input-section').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('input-section').style.display = 'none';
+                document.getElementById('tarot-table').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('tarot-table').style.opacity = '1';
+                    createAndSpreadDeck();
+                }, 50);
+            }, 1000);
+        }
+
+        function createAndSpreadDeck() {
+            const deckContainer = document.getElementById('deck-container');
+            for (let i = 0; i < totalCards; i++) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const cardId = deckIndices[i];
+                const bgPos = getBackgroundPosition(cardId);
+                const isReversed = Math.random() > 0.5;
+
+                card.innerHTML = `
+                    <div class="card-face card-front"></div>
+                    <div class="card-face card-back" style="background-position: ${bgPos}"></div>
+                `;
+                
+                card.style.transform = 'scale(1.5)';
+                deckContainer.appendChild(card);
+
+                setTimeout(() => {
+                    const angle = -70 + (140 / (totalCards - 1)) * i;
+                    const radius = 280; 
+                    const x = Math.sin(angle * Math.PI / 180) * radius;
+                    const y = -Math.cos(angle * Math.PI / 180) * radius + radius;
+                    
+                    card.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg) scale(1.5)`;
+                    card.onclick = () => selectCard(card, cardId, isReversed);
+                }, 100 + i * 30); 
+            }
+        }
+
+        function selectCard(card, cardId, isReversed) {
+            if (drawnCardsInfo.length >= 3 || card.classList.contains('selected')) return;
+            card.classList.add('selected');
+            
+            drawnCardsInfo.push({
+                element: card, id: cardId, isReversed: isReversed,
+                position: drawnCardsInfo.length === 0 ? "过去 (Past)" : (drawnCardsInfo.length === 1 ? "现在 (Present)" : "未来 (Future)")
+            });
+
+            const index = drawnCardsInfo.length - 1;
+            const targetX = (index - 1) * 250; 
+            card.style.transform = `translate(${targetX}px, 420px) scale(1.6)`;
+            card.style.zIndex = 50 + index;
+
+            if (drawnCardsInfo.length === 3) setTimeout(revealCards, 1000);
+        }
+
+       function revealCards() {
+            drawnCardsInfo.forEach((c, i) => {
+                setTimeout(() => {
+                    const targetX = (i - 1) * 250; 
+                    const rotation = c.isReversed ? 'rotateY(180deg) rotateZ(180deg)' : 'rotateY(180deg)';
+                    
+                    // 修复点：删除了之前报错的错误变量引用，精准触发翻面动画和阴影
+                    c.element.style.transform = `translate(${targetX}px, 420px) ${rotation} scale(1.6)`;
+                    c.element.style.boxShadow = '0 0 30px rgba(212, 175, 55, 0.6)';
+                }, i * 600);
+            });
+            // 3秒后进入单张沉浸式解读
+            setTimeout(() => startReading(0), 3000);
+
+        }
+
+        let currentReadingIndex = 0;
+
+        function startReading(index) {
+            currentReadingIndex = index;
+            const data = drawnCardsInfo[index];
+            const tarotInfo = tarotData.find(t => t.id === data.id);
+
+            document.getElementById('position-title').innerText = data.position;
+            document.getElementById('card-name-text').innerText = tarotInfo.name;
+            document.getElementById('card-state-text').innerText = data.isReversed ? "⬇ 逆位 (Reversed)" : "⬆ 正位 (Upright)";
+            document.getElementById('card-meaning-text').innerHTML = `
+                <p>命运的低语正在解析 ${tarotInfo.name} 的能量...</p>
+            `;
+            document.getElementById('next-btn-text').innerText = index === 2 ? "洞悉全局 (查看最终总结)" : "解读下一张";
+
+            const targetHeight = window.innerHeight * 0.60; 
+            const hugeScale = targetHeight / 140; 
+            
+            const offsetX = -190; 
+            const offsetY = 180; 
+
+            drawnCardsInfo.forEach((c, i) => {
+                const rotation = c.isReversed ? 'rotateY(180deg) rotateZ(180deg)' : 'rotateY(180deg)';
+                if (i === index) {
+                    c.element.style.opacity = '1';
+                    c.element.style.zIndex = '300';
+                    c.element.style.transform = `translate(${offsetX}px, ${offsetY}px) ${rotation} scale(${hugeScale})`;
+                    c.element.style.boxShadow = '0 0 60px rgba(212, 175, 55, 0.8)';
+                } else {
+                    c.element.style.opacity = '0.3';
+                    c.element.style.zIndex = '50';
+                    c.element.style.transform = `translate(${(i - 1) * 250}px, 420px) ${rotation} scale(1.6)`;
+                    c.element.style.boxShadow = 'none';
+                }
+            });
+
+            document.getElementById('reading-panel').style.right = '0';
+        }
+
+        function nextReading() {
+            if (currentReadingIndex < 2) {
+                startReading(currentReadingIndex + 1);
+            } else {
+                showFinalSummary();
+            }
+        }
+
+        function showFinalSummary() {
+            document.getElementById('reading-panel').style.right = '-500px';
+            document.getElementById('spread-slots').style.opacity = '0';
+
+            drawnCardsInfo.forEach((c, i) => {
+                const rotation = c.isReversed ? 'rotateY(180deg) rotateZ(180deg)' : 'rotateY(180deg)';
+                const finalX = (i - 1) * 280; 
+                c.element.style.transform = `translate(${finalX}px, -40px) ${rotation} scale(2.2)`;
+                c.element.style.opacity = '1';
+                c.element.style.zIndex = '100';
+                c.element.style.boxShadow = '0 0 30px rgba(212, 175, 55, 0.5)';
+            });
+
+            setTimeout(() => {
+                document.getElementById('summary-section').style.bottom = '0';
+            }, 800);
+        }
+
+        // ================= 魔法书记录核心逻辑 =================
+        function saveToMagicBook() {
+            if (hasSavedCurrentReading) {
+                alert("🔮 命运已被定格，无需重复封印。");
+                return;
+            }
+
+            // 获取当前时间
+            const dateStr = new Date().toLocaleString('zh-CN', { 
+                year: 'numeric', month: '2-digit', day: '2-digit', 
+                hour: '2-digit', minute: '2-digit' 
+            });
+
+            // 格式化当前抽到的牌
+            const cardsRecord = drawnCardsInfo.map(c => {
+                const t = tarotData.find(td => td.id === c.id);
+                return `${c.position}: ${t.name} (${c.isReversed ? '逆位' : '正位'})`;
+            });
+
+            const newRecord = {
+                date: dateStr,
+                question: userQuestion,
+                cards: cardsRecord
+            };
+
+            // 从 localStorage 获取历史记录（如果没有则为空数组）
+            let history = JSON.parse(localStorage.getItem('tarotHistory') || '[]');
+            
+            // 将最新记录推入数组开头
+            history.unshift(newRecord);
+
+            // 存回本地
+            localStorage.setItem('tarotHistory', JSON.stringify(history));
+            
+            hasSavedCurrentReading = true;
+            document.getElementById('save-btn').innerText = "已封印";
+            document.getElementById('save-btn').style.opacity = '0.5';
+            
+            alert("📜 启示已被永远封印于魔法书中。点击右上角图标即可翻阅。");
+        }
+
+        function openMagicBook() {
+            const modal = document.getElementById('magic-book-modal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.style.opacity = '1', 10);
+            renderMagicBook();
+        }
+
+        function closeMagicBook() {
+            const modal = document.getElementById('magic-book-modal');
+            modal.style.opacity = '0';
+            setTimeout(() => modal.style.display = 'none', 500);
+        }
+
+        function renderMagicBook() {
+            const list = document.getElementById('magic-book-list');
+            let history = JSON.parse(localStorage.getItem('tarotHistory') || '[]');
+            
+            if (history.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#8a7325; margin-top:100px; font-size:20px;">书页空空如也，尚未记录任何命运轨迹...</p>';
+                return;
+            }
+
+            list.innerHTML = history.map(item => `
+                <div class="history-item">
+                    <div class="history-date">记录时间：${item.date}</div>
+                    <div class="history-question">🔮 探寻之惑：${item.question}</div>
+                    <div class="history-cards">
+                        ${item.cards.map(card => `<div class="history-card-tag">${card}</div>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ================= 卷轴拖拽逻辑 =================
+        const dragContainer = document.getElementById('drag-handle-container');
+        const summarySec = document.getElementById('summary-section');
+        let isDragging = false, startY, startHeight, isExpanded = false; 
+
+        dragContainer.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startY = e.clientY;
+            startHeight = parseInt(window.getComputedStyle(summarySec).height, 10);
+            summarySec.style.transition = 'none'; 
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            const dy = startY - e.clientY; 
+            let newHeight = startHeight + dy;
+            if (newHeight < window.innerHeight * 0.3) newHeight = window.innerHeight * 0.3;
+            if (newHeight > window.innerHeight) newHeight = window.innerHeight;
+            summarySec.style.height = `${newHeight}px`;
+        });
+
+        window.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                summarySec.style.transition = 'bottom 0.8s, height 0.4s ease'; 
+                isExpanded = parseInt(summarySec.style.height, 10) > window.innerHeight * 0.8;
+            }
+        });
+
+        dragContainer.addEventListener('dblclick', function() {
+            summarySec.style.height = isExpanded ? '40vh' : '100vh'; 
+            isExpanded = !isExpanded;
+        });
+    </script>
+<script>
+        // 这里的同名函数会在网页加载的最后，安全地覆盖掉上面旧的 startReading 函数
+        async function startReading(index) {
+            currentReadingIndex = index;
+            const data = drawnCardsInfo[index];
+            const tarotInfo = tarotData.find(t => t.id === data.id);
+
+            // 1. 界面更新
+            document.getElementById('position-title').innerText = data.position;
+            document.getElementById('card-name-text').innerText = tarotInfo.name;
+            document.getElementById('card-state-text').innerText = data.isReversed ? "⬇ 逆位 (Reversed)" : "⬆ 正位 (Upright)";
+            
+            const meaningDiv = document.getElementById('card-meaning-text');
+            meaningDiv.innerHTML = `<p>命运的低语正在解析...</p>`;
+
+            // 2. 连接本地的 AI 服务器
+            try {
+                const response = await fetch('https://tarot-backend-axoa.onrender.com//api/tarot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: userQuestion,
+                        cardName: tarotInfo.name,
+                        position: data.position,
+                        isReversed: data.isReversed
+                    })
+                });
+
+                // 3. 处理流式输出 (打字机效果)
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                meaningDiv.innerHTML = ""; 
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const jsonData = JSON.parse(line.replace('data: ', ''));
+                                if (jsonData.text) {
+                                    meaningDiv.innerHTML += jsonData.text; 
+                                }
+                            } catch(e) {}
+                        }
+                    }
+                }
+            } catch (err) {
+                meaningDiv.innerHTML = "<p>无法连接到命运的服务器，请检查黑色的命令行窗口是否正在运行 server.js。</p>";
+            }
+
+            // 4. 维持原有的居中放大逻辑
+            document.getElementById('next-btn-text').innerText = index === 2 ? "洞悉全局 (查看最终总结)" : "解读下一张";
+
+            const targetHeight = window.innerHeight * 0.60; 
+            const hugeScale = targetHeight / 140; 
+            const offsetX = -190; 
+            const offsetY = 180; 
+
+            drawnCardsInfo.forEach((c, i) => {
+                const rotation = c.isReversed ? 'rotateY(180deg) rotateZ(180deg)' : 'rotateY(180deg)';
+                if (i === index) {
+                    c.element.style.opacity = '1';
+                    c.element.style.zIndex = '300';
+                    c.element.style.transform = `translate(${offsetX}px, ${offsetY}px) ${rotation} scale(${hugeScale})`;
+                    c.element.style.boxShadow = '0 0 60px rgba(212, 175, 55, 0.8)';
+                } else {
+                    c.element.style.opacity = '0.3';
+                    c.element.style.zIndex = '50';
+                    c.element.style.transform = `translate(${(i - 1) * 250}px, 420px) ${rotation} scale(1.6)`;
+                    c.element.style.boxShadow = 'none';
+                }
+            });
+
+            document.getElementById('reading-panel').style.right = '0';
+        }
+    </script>
+<script>
+        async function showFinalSummary() {
+            // 1. 卷轴滑出，卡牌飞入的动画（保持原样）
+            document.getElementById('reading-panel').style.right = '-500px';
+            document.getElementById('spread-slots').style.opacity = '0';
+
+            drawnCardsInfo.forEach((c, i) => {
+                const rotation = c.isReversed ? 'rotateY(180deg) rotateZ(180deg)' : 'rotateY(180deg)';
+                const finalX = (i - 1) * 280; 
+                c.element.style.transform = `translate(${finalX}px, -40px) ${rotation} scale(2.2)`;
+                c.element.style.opacity = '1';
+                c.element.style.zIndex = '100';
+                c.element.style.boxShadow = '0 0 30px rgba(212, 175, 55, 0.5)';
+            });
+
+            setTimeout(() => {
+                document.getElementById('summary-section').style.bottom = '0';
+            }, 800);
+
+            // 2. 准备向 AI 请求最终总结
+            const summaryDiv = document.getElementById('final-summary-content');
+            // 显示加载中的文案
+            summaryDiv.innerHTML = '<p style="text-align:center; color:#8a7325; margin-top:20px;">命运的丝线正在交织，正在为你生成最终启示...</p>';
+
+            // 提取三张牌的信息
+            const cardsData = drawnCardsInfo.map(c => {
+                const tarotInfo = tarotData.find(t => t.id === c.id);
+                return {
+                    position: c.position,
+                    name: tarotInfo.name,
+                    state: c.isReversed ? "逆位" : "正位"
+                };
+            });
+
+            // 3. 连接 AI 获取结果
+            try {
+                const response = await fetch('http://localhost:3000/api/tarot/summary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: userQuestion,
+                        cards: cardsData
+                    })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                summaryDiv.innerHTML = ""; // 清空占位符
+
+                // 4. 流式打印到巨大的羊皮卷轴上
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const jsonData = JSON.parse(line.replace('data: ', ''));
+                                if (jsonData.text) {
+                                    // 把 AI 返回的换行符转换成网页的换行标签
+                                    const text = jsonData.text.replace(/\n/g, '<br>');
+                                    summaryDiv.innerHTML += text; 
+                                }
+                            } catch(e) {}
+                        }
+                    }
+                }
+            } catch (err) {
+                summaryDiv.innerHTML = "<p>无法连接到命运的服务器，请检查 server.js 是否在运行。</p>";
+            }
+        }
+    </script>
+<style>
+        /* 为删除按钮添加中世纪风格的悬停发光效果 */
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: #8a7325;
+            font-size: 28px;
+            cursor: pointer;
+            transition: color 0.3s, transform 0.3s, text-shadow 0.3s;
+            font-family: Arial, sans-serif;
+            z-index: 10;
+        }
+        .delete-btn:hover { 
+            color: #d4af37; 
+            transform: scale(1.2); 
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.8);
+        }
+    </style>
+
+    <script>
+        // 重写魔法书渲染函数，在每条记录右上角加入“删除（×）”按钮
+        function renderMagicBook() {
+            const list = document.getElementById('magic-book-list');
+            let history = JSON.parse(localStorage.getItem('tarotHistory') || '[]');
+            
+            if (history.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#8a7325; margin-top:100px; font-size:20px;">书页空空如也，尚未记录任何命运轨迹...</p>';
+                return;
+            }
+
+            list.innerHTML = history.map((item, index) => `
+                <div class="history-item" style="position: relative;">
+                    <div class="delete-btn" onclick="deleteHistoryRecord(${index})" title="清除此条记忆">×</div>
+                    <div class="history-date">记录时间：${item.date}</div>
+                    <div class="history-question">🔮 探寻之惑：${item.question}</div>
+                    <div class="history-cards">
+                        ${item.cards.map(card => `<div class="history-card-tag">${card}</div>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 新增：执行抹除记忆的逻辑
+        function deleteHistoryRecord(index) {
+            // 加入二次确认弹窗，防止用户手滑点错
+            if (confirm("是否要将这段命运的记忆从魔法书中彻底抹除？")) {
+                let history = JSON.parse(localStorage.getItem('tarotHistory') || '[]');
+                history.splice(index, 1); // 根据索引精准删掉这一条
+                localStorage.setItem('tarotHistory', JSON.stringify(history)); // 重新封印回浏览器本地缓存
+                renderMagicBook(); // 瞬间刷新魔法书界面，记录消失
+            }
+        }
+    </script>
+<script>
+        // 覆盖掉旧的函数：修复切换延迟问题
+        async function startReading(index) {
+            currentReadingIndex = index;
+            const data = drawnCardsInfo[index];
+            const tarotInfo = tarotData.find(t => t.id === data.id);
+
+            // ================= 第一步：瞬间完成所有视觉动画（绝不等待） =================
+            document.getElementById('position-title').innerText = data.position;
+            document.getElementById('card-name-text').innerText = tarotInfo.name;
+            document.getElementById('card-state-text').innerText = data.isReversed ? "⬇ 逆位 (Reversed)" : "⬆ 正位 (Upright)";
+            document.getElementById('next-btn-text').innerText = index === 2 ? "洞悉全局 (查看最终总结)" : "解读下一张";
+            
+            const meaningDiv = document.getElementById('card-meaning-text');
+            meaningDiv.innerHTML = `<p>命运的低语正在解析...</p>`;
+
+            // 核心修复：立刻让新牌飞到中央，旧牌退回槽位
+            const targetHeight = window.innerHeight * 0.60; 
+            const hugeScale = targetHeight / 140; 
+            const offsetX = -190; 
+            const offsetY = 180; 
+
+            drawnCardsInfo.forEach((c, i) => {
+                const rotation = c.isReversed ? 'rotateY(180deg) rotateZ(180deg)' : 'rotateY(180deg)';
+                if (i === index) {
+                    c.element.style.opacity = '1';
+                    c.element.style.zIndex = '300';
+                    c.element.style.transform = `translate(${offsetX}px, ${offsetY}px) ${rotation} scale(${hugeScale})`;
+                    c.element.style.boxShadow = '0 0 60px rgba(212, 175, 55, 0.8)';
+                } else {
+                    c.element.style.opacity = '0.3';
+                    c.element.style.zIndex = '50';
+                    c.element.style.transform = `translate(${(i - 1) * 250}px, 420px) ${rotation} scale(1.6)`;
+                    c.element.style.boxShadow = 'none';
+                }
+            });
+
+            document.getElementById('reading-panel').style.right = '0';
+
+            // ================= 第二步：后台悄悄连接 AI 服务器获取文字 =================
+            try {
+                const response = await fetch('https://tarot-backend-axoa.onrender.com//api/tarot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: userQuestion,
+                        cardName: tarotInfo.name,
+                        position: data.position,
+                        isReversed: data.isReversed
+                    })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                meaningDiv.innerHTML = ""; 
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const jsonData = JSON.parse(line.replace('data: ', ''));
+                                if (jsonData.text) {
+                                    meaningDiv.innerHTML += jsonData.text; 
+                                }
+                            } catch(e) {}
+                        }
+                    }
+                }
+            } catch (err) {
+                meaningDiv.innerHTML = "<p>无法连接到命运的服务器，请检查黑色的命令行窗口是否正在运行 server.js。</p>";
+            }
+        }
+    </script>
+</body>
+</html>

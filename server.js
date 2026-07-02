@@ -5,6 +5,10 @@ const { OpenAI } = require('openai');
 const app = express();
 app.use(cors());
 app.use(express.json());
+// 探测雷达暗号
+app.get('/', (req, res) => {
+    res.send('<h1>🔮 命运齿轮已转动！云端服务器更新成功！</h1>');
+});
 
 const openai = new OpenAI({
     baseURL: 'https://api.deepseek.com', 

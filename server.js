@@ -6,8 +6,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ⚠️ 核心变化看这里：不再直接写 sk-... 密钥了！
-// 而是告诉代码：去 Render 云端的保险箱里找一个叫 DEEPSEEK_API_KEY 的东西
 const openai = new OpenAI({
     baseURL: 'https://api.deepseek.com', 
     apiKey: process.env.DEEPSEEK_API_KEY 
@@ -22,10 +20,7 @@ app.post('/api/tarot', async (req, res) => {
 用户的问题是：【${question}】。
 用户在【${position}】位置抽到了【${cardName} (${state})】。
 请给出约100字的单张牌解析。
-要求：
-1. 简单直接、用通俗易懂的大白话解释这张牌（包括正逆位）的核心含义，让普通人一眼就能看懂。
-2. 结合用户的问题，给出最实在的说明。
-3. 语气保持温和专业，绝对不要过度使用晦涩的诗意或魔幻词汇。直接开始解析。`;
+要求：简单直接、用通俗易懂的大白话解释核心含义。`;
 
     try {
         res.setHeader('Content-Type', 'text/event-stream');
@@ -57,13 +52,9 @@ app.post('/api/tarot/summary', async (req, res) => {
     const cardsInfo = cards.map(c => `${c.position}：${c.name} (${c.state})`).join('，');
 
     const systemPrompt = `你是一位经验丰富的塔罗占卜师。
-用户的问题是：【${question}】。
-用户抽出的三张牌分别是：【${cardsInfo}】。
-请根据这三张牌的逻辑发展（过去-现在-未来），为用户提供一份最终的综合占卜报告（约200-300字）。
-要求：
-1. 一针见血地点出这三张牌组合的核心脉络和最终走向。
-2. 针对用户的问题，给出明确、实用的最终建议。
-3. 直接开始正文，分段输出，无需客套。`;
+用户的问题是：【${question}】。抽出的三张牌：【${cardsInfo}】。
+请提供一份最终的综合占卜报告（约200-300字）。
+要求：一针见血地点出核心脉络，给出实用的最终建议，分段输出。`;
 
     try {
         res.setHeader('Content-Type', 'text/event-stream');
@@ -89,7 +80,6 @@ app.post('/api/tarot/summary', async (req, res) => {
     }
 });
 
-// ⚠️ 核心变化 2：让云平台自动分配端口
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`✨ 守护者服务器已启动在云端端口 ${PORT}...`);
